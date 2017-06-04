@@ -1,0 +1,8 @@
+penv/*
+__pycache__/*
+*.pyc
+*.backup
+*.ini
+*.txt
+*.json
+test.py
