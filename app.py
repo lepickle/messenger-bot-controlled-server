@@ -66,7 +66,9 @@ def get_disk_usage_message():
     return message
 
 def get_torrent_list_message():
-    data = subprocess.check_output("deluge-console \"connect 127.0.0.1:58846 "+config['Deluge']['name']+" "+config['Deluge']['password']+"; info\"", shell=True)
+    command = "deluge-console \"connect "+config['Deluge']['daemon_address']+" "+config['Deluge']['name']+" "+config['Deluge']['password']+"; info\""
+    print(command)
+    data = subprocess.check_output(command, shell=True)
     data = json.dumps(data.decode("utf-8"))#convert to utf 8 due to byte sequence output
     data = re.split(r"\\n", data)
     message = ""
@@ -88,10 +90,12 @@ def add_torrent_file(message):
         opener = urllib.request.build_opener()
         opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
         urllib.request.install_opener(opener)
-        urllib.request.urlretrieve(file_url, torrent_directory)
         torrent_directory = config['Deluge']['torrent_directory']
+        urllib.request.urlretrieve(file_url, torrent_directory)
     message = "Download successful, adding to torrent"
-    data = subprocess.check_output("deluge-console \"connect 127.0.0.1:58846 "+config['Deluge']['name']+" "+config['Deluge']['password']+"; add "+torrent_directory+"\"", shell=True)
+    command = "deluge-console \"connect "+config['Deluge']['daemon_address']+" "+config['Deluge']['name']+" "+config['Deluge']['password']+"; add "+torrent_directory+"\""
+    print(command)
+    data = subprocess.check_output(command, shell=True)
     return message
 
 def is_valid_server_command(message, keyword):
@@ -144,7 +148,7 @@ def name_exists(sender_name):
     result = False
     for name in names:
         joined_name_from_file = name['last_name']+" "+name['first_name']
-        joined_sender_name = name['last_name']+ " "+ name['first_name']
+        joined_sender_name = sender_name['last_name']+ " "+ sender_name['first_name']
         if joined_name_from_file == joined_sender_name:
             result = True
             break
@@ -167,6 +171,7 @@ def get_config_ini():
         config['Deluge']['name'] = ''
         config['Deluge']['password'] = ''
         config['Deluge']['torrent_directory'] = ''
+        config['Deluge']['daemon_address'] = '127.0.0.1:58846 ;This is normally the default port'
         with open('config.ini', 'w+') as configfile:
             config.write(configfile)
     return config
